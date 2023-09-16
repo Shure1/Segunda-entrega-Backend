@@ -12,7 +12,7 @@ const PORT = 4000;
 
 mongoose
   .connect(
-    "mongodb+srv://erodriguezp2:Shure200.@cluster0.qhlv3mx.mongodb.net/?retryWrites=true&w=majority"
+    "mongodb+srv://erodriguezp2:pass.@cluster0.qhlv3mx.mongodb.net/?retryWrites=true&w=majority"
   )
   .then(async () => {
     console.log("BDD conectada");
