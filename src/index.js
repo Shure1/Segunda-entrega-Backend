@@ -12,19 +12,20 @@ const PORT = 4000;
 
 mongoose
   .connect(
-    "mongodb+srv://erodriguezp2:pass.@cluster0.qhlv3mx.mongodb.net/?retryWrites=true&w=majority"
+    "mongodb+srv://erodriguezp2:Shure200.@cluster0.qhlv3mx.mongodb.net/?retryWrites=true&w=majority"
   )
   .then(async () => {
     console.log("BDD conectada");
     //Filtro -
     /* const resultado = await cartModel.findOne({
       _id: "64ffd7d6e68f421a1319fd8d",
-    });
-    const resultado = await userModel.paginate(
-      { password: "1234" },
-      { limit: 20, page: 1, sort: { edad: "asc" } }
+    }); */
+    const consultaQuery = {};
+    const resultado = await productModel.paginate(
+      { category: "fiambres" },
+      { limit: 1, page: 1, sort: { price: "1" } }
     );
-    console.log(JSON.stringify(resultado)); */
+    console.log(JSON.stringify(resultado.docs));
 
     /* const resultados = await orderModel.aggregate([
             {

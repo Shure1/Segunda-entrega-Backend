@@ -1,36 +1,39 @@
 import { Router } from "express";
 import { productModel } from "../models/products.models.js";
+import { PaginationParameters } from "mongoose-paginate-v2";
 
 const productRouter = Router();
 
-/* productRouter.get("/", async (req, res) => {
+productRouter.get("/", async (req, res) => {
   let { limit, page, sort, category, status } = req.query;
   limit = parseInt(limit) || 10;
   page = parseInt(page) || 1;
 
   try {
-    let consultaQuery = {
+    let paramsPaginate = {
       limit,
       page,
-      query: {
-        ...(category && { category }),
-        ...(status && { status }),
-      },
+      sort,
+    };
+    let consultaQuery = {
+      ...(category && { category }),
+      ...(status && { status }),
     };
     if (sort) {
       sort === "asc"
-        ? (consultaQuery.sort = { price: 1 })
-        : (consultaQuery.sort = { price: -1 });
+        ? (paramsPaginate.sort = { price: 1 })
+        : (paramsPaginate.sort = { price: -1 });
     }
+    console.log(consultaQuery);
 
-    const prods = await productModel.paginate(consultaQuery);
+    const prods = await productModel.paginate(consultaQuery, paramsPaginate);
     res.status(200).send({ respuesta: "OK", mensaje: prods });
   } catch (error) {
     res
       .status(400)
       .send({ respuesta: "Error en consultar productos", mensaje: error });
   }
-}); */
+});
 
 productRouter.get("/:id", async (req, res) => {
   const { id } = req.params;
