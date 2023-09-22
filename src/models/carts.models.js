@@ -24,8 +24,8 @@ const cartSchema = new Schema({
 
 /* previo a lo que seria la generacion del modelo con findOne
 traera la referencia del producto con el carrito*/
-cartSchema.pre("findOne", function () {
+/* cartSchema.pre("findOne", function () {
   this.populate("products.id_prod");
 });
-
+ */
 export const cartModel = model("carts", cartSchema);

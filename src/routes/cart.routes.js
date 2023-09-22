@@ -163,11 +163,17 @@ cartRouter.put("/:cid/products/:pid", async (req, res) => {
     if (cart) {
       const prod = await productModel.findById(pid);
       if (prod) {
-        const indice = cart.products.findIndex((prod) => item.id_prod == pid);
+        const indice = cart.products.findIndex((prod) => {
+          const idProd = prod.id_prod.toString();
+          return idProd === pid;
+        });
+        console.log(indice);
         if (indice != -1) {
           cart.products[indice].quantity = quantity;
         }
-        const respuesta = await cartModel.findByIdAndUpdate(cid, cart);
+        const respuesta = await cartModel.findByIdAndUpdate(cid, {
+          products: cart.products,
+        });
         res.status(200).send({ respuesta: "OK", mensaje: respuesta });
       } else {
         res.status(404).send({
