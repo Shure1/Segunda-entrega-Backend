@@ -1,0 +1,15 @@
+
+<nav>
+    <p>Bienvenido, {{user.nombre}} ({{user.cargo}})</p>
+</nav>
+
+
+<h1>Lista de Productos</h1>
+
+{{#each prods}}
+  <div class="producto">
+    <h2>{{title}}</h2>
+    <p>{{description}}</p>
+    <p>Precio: ${{price}}</p>
+  </div>
+{{/each}}

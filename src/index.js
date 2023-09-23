@@ -1,14 +1,43 @@
+import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
+import MongoStore from "connect-mongo";
+import session from "express-session";
+
+//handlebars
+import { engine } from "express-handlebars";
+
+//socket io
+import { Server } from "socket.io";
+
+import { __dirname } from "./path.js";
+
+import path from "path";
+
+//modulo de rutas
 import userRouter from "./routes/users.routes.js";
 import productRouter from "./routes/products.routes.js";
 import cartRouter from "./routes/cart.routes.js";
-import { orderModel } from "./models/orders.models.js";
-import { userModel } from "./models/users.models.js";
-import { cartModel } from "./models/carts.models.js";
-import { productModel } from "./models/products.models.js";
+import sessionRouter from "./routes/session.routes.js";
+
 const app = express();
 const PORT = 4000;
+
+const serverExpress = app.listen(PORT, () => {
+  console.log(`Server on Port ${PORT}`);
+});
+
+//?MIDDLEWARES
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); //para que podamos trabajar con querys largas
+
+//?MIDLEWARES DE HANDLEBARS
+app.engine("handlebars", engine()); //Defino que motor de plantillas voy a utilizar y su config
+app.set("view engine", "handlebars"); //Setting de mi app de hbs
+app.set("views", path.resolve(__dirname, "./views")); //Resolver rutas absolutas a traves de rutas relativas
+app.use("/static", express.static(path.join(__dirname, "/public"))); //me evito el problema de la ruta en diferentes sist operativos u otros pc y sirve para ocupar la carpeta public para el handlebars
+
+const io = new Server(serverExpress);
 
 mongoose
   .connect(
@@ -20,12 +49,12 @@ mongoose
     /* const resultado = await cartModel.findOne({
       _id: "64ffd7d6e68f421a1319fd8d",
     }); */
-    const consultaQuery = {};
-    const resultado = await productModel.paginate(
+
+    /* const resultado = await productModel.paginate(
       { category: "fiambres" },
       { limit: 1, page: 1, sort: { price: "1" } }
     );
-    console.log(JSON.stringify(resultado.docs));
+    console.log(JSON.stringify(resultado.docs)); */
 
     /* const resultados = await orderModel.aggregate([
             {
@@ -55,12 +84,52 @@ mongoose
   })
   .catch(() => console.log("Error en conexion a BDD"));
 
-app.use(express.json());
+//Guardamos sesiones en la BDD
+app.use(
+  session({
+    store: MongoStore.create({
+      mongoUrl:
+        "mongodb+srv://erodriguezp2:Shure200.@cluster0.qhlv3mx.mongodb.net/?retryWrites=true&w=majority", //es la url que usa useNewUrlParser
+      mongoOptions: {
+        useNewUrlParser: true, //establecemos conexion mediante url
+        useUnifiedTopology: true, //manejo de clusters de manera dinamica, nos conectamos al controlador actual de base de datos
+      },
+      ttl: 60, //duracion de la sesion en la BDD en seg
+    }),
+    secret: "coder",
+    //fuerzo a que intente guardar a pesar de no tener modificaciones en los datos
+    resave: false,
+    //fuerzo a que la sesion guarde un valor (id) al menos
+    saveUninitialized: false,
+  })
+);
 
+io.on("connection", (socket) => {
+  console.log("servidor Socket.io conectado");
+
+  socket.on("user", async (usuario) => {
+    try {
+      const response = await fetch("/api/sessions/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(usuario),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        socket.emit("redireccion", "/products");
+      } else {
+        socket.emit("mensaje", { tipo: "error", mensaje: data.resultado });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  });
+});
+
+//?RUTAS
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
 app.use("/api/carts", cartRouter);
-
-app.listen(PORT, () => {
-  console.log(`Server on Port ${PORT}`);
-});
+app.use("/api/sessions", sessionRouter);

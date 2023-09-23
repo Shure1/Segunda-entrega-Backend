@@ -27,7 +27,7 @@ productRouter.get("/", async (req, res) => {
     console.log(consultaQuery);
 
     const prods = await productModel.paginate(consultaQuery, paramsPaginate);
-    res.status(200).send({ respuesta: "OK", mensaje: prods });
+    res.render("products", { prods });
   } catch (error) {
     res
       .status(400)
