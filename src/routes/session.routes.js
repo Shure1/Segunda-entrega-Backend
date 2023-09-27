@@ -13,6 +13,7 @@ sessionRouter.post("/login", async (req, res) => {
       res.status(200).send({ resultado: "login ya existente" });
     }
     const user = await userModel.findOne({ email: email });
+    console.log(user);
 
     if (user) {
       if (user.password == password) {
@@ -21,7 +22,7 @@ sessionRouter.post("/login", async (req, res) => {
           nombre: user.first_name,
           rol: user.rol,
         };
-        res.redirect("./views/productos.handlebars", 200, { info: "user" });
+        res.render("productos");
       } else {
         res
           .status(401)

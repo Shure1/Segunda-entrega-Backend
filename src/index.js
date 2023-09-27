@@ -111,30 +111,6 @@ app.get("/static", (req, res) => {
   });
 });
 
-/*io.on("connection", (socket) => {
-  console.log("servidor Socket.io conectado");
-
-  socket.on("user", async (usuario) => {
-    try {
-      const response = await fetch("/api/sessions/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(usuario),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        socket.emit("redireccion", "/products");
-      } else {
-        socket.emit("mensaje", { tipo: "error", mensaje: data.resultado });
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  });
-}); */
-
 //?RUTAS
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
