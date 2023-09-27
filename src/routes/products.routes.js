@@ -8,6 +8,7 @@ productRouter.get("/", async (req, res) => {
   let { limit, page, sort, category, status } = req.query;
   limit = parseInt(limit) || 10;
   page = parseInt(page) || 1;
+  console.log("llego a products api");
 
   try {
     let paramsPaginate = {

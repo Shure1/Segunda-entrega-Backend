@@ -104,7 +104,14 @@ app.use(
   })
 );
 
-io.on("connection", (socket) => {
+app.get("/static", (req, res) => {
+  res.render("home", {
+    css: "style.css",
+    js: "home.js",
+  });
+});
+
+/*io.on("connection", (socket) => {
   console.log("servidor Socket.io conectado");
 
   socket.on("user", async (usuario) => {
@@ -126,7 +133,7 @@ io.on("connection", (socket) => {
       console.log(error);
     }
   });
-});
+}); */
 
 //?RUTAS
 app.use("/api/users", userRouter);

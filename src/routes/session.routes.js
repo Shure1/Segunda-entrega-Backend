@@ -7,6 +7,7 @@ sessionRouter.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    console.log("llego al server");
     /* consultamos si la sesion esta activa o no */
     if (req.session.login) {
       res.status(200).send({ resultado: "login ya existente" });
@@ -20,7 +21,7 @@ sessionRouter.post("/login", async (req, res) => {
           nombre: user.first_name,
           rol: user.rol,
         };
-        res.redirect("/products", 200, { info: "user" });
+        res.redirect("./views/productos.handlebars", 200, { info: "user" });
       } else {
         res
           .status(401)
