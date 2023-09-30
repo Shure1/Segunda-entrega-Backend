@@ -1,0 +1,126 @@
+import "dotenv/config";
+import local from "passport-local";
+import GitHubStrategy from "passport-github2";
+import passport from "passport";
+import { createHash, validatePassword } from "../utils/bcrypt.js";
+import { userModel } from "../models/users.models.js";
+
+//TODO done es un return en donde tiene 2 params el primero es algun error si no hay nada ponemos null, y al usuario y objeto creado, si no creamos nada ponemos false
+
+//defino mi estrategia a utilizar
+
+const LocalStrategy = local.Strategy;
+
+const initializePassport = () => {
+  passport.use(
+    "register",
+    new LocalStrategy(
+      {
+        /* devuelvo como callback todo lo que envie */ passReqToCallback: true,
+        /* que me tome el email como si fuera el username */
+        usernameField: "email",
+      },
+      async (req, username, password, done) => {
+        /* registramos al usuario */
+        const { first_name, last_name, email, age } = req.body;
+
+        try {
+          const user = await userModel.findOne({ email: email });
+          if (user) {
+            /* se encontro el user, por lo tanto va false porque ya esta creado */
+            return done(null, false);
+          }
+
+          /* caso en el que el user no existe lo creamos */
+          //encriptamos las pass
+          const passwordHash = createHash(password);
+
+          //lo enviamos a la BDD
+          const userCreated = await userModel.create({
+            first_name: first_name,
+            last_name: last_name,
+            age: age,
+            email: email,
+            password: passwordHash,
+          });
+          return donde(null, userCreated);
+        } catch (error) {
+          /* es done es un return implicito que utiliza passport */
+          return done(error);
+        }
+      }
+    )
+  );
+
+  passport.use(
+    "login",
+    new LocalStrategy(
+      {
+        usernameField: "email", //ponemos el email como username
+      },
+      async (username, password, done) => {
+        try {
+          const user = await userModel.findOne({ email: username });
+          /* caso en que el user no exista al logearse */
+          if (!user) {
+            return done(null, false);
+          }
+
+          /* caso en que el user si existe */
+          if (validatePassword(password, user.password)) {
+            //a la izq ponemos lo que me envia el usuario y a la der lo que tengo en la BDD
+            return done(null, user);
+          }
+          /* caso en que los datos son invalidos */
+          return donde(null, false);
+        } catch (error) {
+          return done(error);
+        }
+      }
+    )
+  );
+
+  passport.use(
+    "github",
+    new GitHubStrategy(
+      {
+        clientID: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        callbackURL: process.env.CALLBACK_URL,
+      },
+      async (accesToken, refreshToken, profile, done) => {
+        try {
+          console.log(accesToken);
+          console.log(refreshToken);
+          console.log(profile);
+          const user = await userModel.findOne({ email: profile._json.email });
+          if (user) {
+            done(null, false);
+          } else {
+            const userCreated = await userModel.create({
+              first_name: profile._json.name,
+              last_name: "",
+              email: profile._json.email,
+              age: 18,
+              password: createHash(profile._json.email + profile._json.name),
+            });
+            done(null, userCreated);
+          }
+        } catch (error) {
+          done(error);
+        }
+      }
+    )
+  );
+  //iniciamos la sesion del user, le tenemos que indicar cual es el atributo unico con el que se inicia la sesion (en nuestro caso el id)
+  passport.serializeUser((user, done) => {
+    done(null, user._id);
+  });
+  /* eliminamos la sesion con el id  */
+  passport.deserializeUser(async (id, done) => {
+    const user = await userModel.findById(id);
+    done(null, user);
+  });
+};
+
+export default initializePassport;

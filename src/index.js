@@ -3,6 +3,8 @@ import express from "express";
 import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
 import session from "express-session";
+import passport from "passport";
+import initializePassport from "./config/passport.js";
 
 //handlebars
 import { engine } from "express-handlebars";
@@ -40,9 +42,7 @@ app.use("/static", express.static(path.join(__dirname, "/public"))); //me evito 
 const io = new Server(serverExpress);
 
 mongoose
-  .connect(
-    "mongodb+srv://erodriguezp2:Shure200.@cluster0.qhlv3mx.mongodb.net/?retryWrites=true&w=majority"
-  )
+  .connect(process.env.MONGO_URL)
   .then(async () => {
     console.log("BDD conectada");
     //Filtro -
@@ -88,21 +88,24 @@ mongoose
 app.use(
   session({
     store: MongoStore.create({
-      mongoUrl:
-        "mongodb+srv://erodriguezp2:Shure200.@cluster0.qhlv3mx.mongodb.net/?retryWrites=true&w=majority", //es la url que usa useNewUrlParser
+      mongoUrl: process.env.MONGO_URL, //es la url que usa useNewUrlParser
       mongoOptions: {
         useNewUrlParser: true, //establecemos conexion mediante url
         useUnifiedTopology: true, //manejo de clusters de manera dinamica, nos conectamos al controlador actual de base de datos
       },
       ttl: 60, //duracion de la sesion en la BDD en seg
     }),
-    secret: "coder",
+    secret: process.env.SESSION_SECRET,
     //fuerzo a que intente guardar a pesar de no tener modificaciones en los datos
     resave: false,
     //fuerzo a que la sesion guarde un valor (id) al menos
     saveUninitialized: false,
   })
 );
+/* USO DE PASSPORT APLICAMOS LA ESTRATEGIA Y MANEJAMOS LAS SESIONES */
+initializePassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get("/static", (req, res) => {
   res.render("home", {
