@@ -25,10 +25,6 @@ import sessionRouter from "./routes/session.routes.js";
 const app = express();
 const PORT = 4000;
 
-const serverExpress = app.listen(PORT, () => {
-  console.log(`Server on Port ${PORT}`);
-});
-
 //?MIDDLEWARES
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); //para que podamos trabajar con querys largas
@@ -39,8 +35,7 @@ app.set("view engine", "handlebars"); //Setting de mi app de hbs
 app.set("views", path.resolve(__dirname, "./views")); //Resolver rutas absolutas a traves de rutas relativas
 app.use("/static", express.static(path.join(__dirname, "/public"))); //me evito el problema de la ruta en diferentes sist operativos u otros pc y sirve para ocupar la carpeta public para el handlebars
 
-const io = new Server(serverExpress);
-
+//?CONEXION A MONGODB
 mongoose
   .connect(process.env.MONGO_URL)
   .then(async () => {
@@ -84,7 +79,7 @@ mongoose
   })
   .catch(() => console.log("Error en conexion a BDD"));
 
-//Guardamos sesiones en la BDD
+//?GUARDAMOS LAS SESIONES EN MONGO
 app.use(
   session({
     store: MongoStore.create({
@@ -102,7 +97,7 @@ app.use(
     saveUninitialized: false,
   })
 );
-/* USO DE PASSPORT APLICAMOS LA ESTRATEGIA Y MANEJAMOS LAS SESIONES */
+//?USO DE PASSPORT APLICAMOS LA ESTRATEGIA Y MANEJAMOS LAS SESIONES
 initializePassport();
 app.use(passport.initialize());
 app.use(passport.session());
@@ -119,3 +114,7 @@ app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
 app.use("/api/carts", cartRouter);
 app.use("/api/sessions", sessionRouter);
+
+app.listen(PORT, () => {
+  console.log(`Server on Port ${PORT}`);
+});

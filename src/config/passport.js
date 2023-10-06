@@ -1,6 +1,7 @@
 import "dotenv/config";
-import local from "passport-local";
+import local, { Strategy } from "passport-local";
 import GitHubStrategy from "passport-github2";
+import jwt from "passport-jwt";
 import passport from "passport";
 import { createHash, validatePassword } from "../utils/bcrypt.js";
 import { userModel } from "../models/users.models.js";
@@ -8,10 +9,42 @@ import { userModel } from "../models/users.models.js";
 //TODO done es un return en donde tiene 2 params el primero es algun error si no hay nada ponemos null, y al usuario y objeto creado, si no creamos nada ponemos false
 
 //defino mi estrategia a utilizar
-
 const LocalStrategy = local.Strategy;
+const JWTStrategy = jwt.Strategy;
+//ExtractJWT nos sirve para extraer las coockies el token
+const ExtractJWT = jwt.ExtractJwt;
 
 const initializePassport = () => {
+  /* funcion que capta las cookies desde el cliente */
+  const cookieExtractor = (req) => {
+    console.log(req.cookies);
+    const token = req.cookies.jwtCookie ? req.cookies.jwtCookie : {};
+    console.log("cookieExtractor", token);
+
+    return token;
+  };
+
+  passport.use(
+    "jwt",
+    new Strategy(
+      {
+        //avisamos de que el token proviene desde cookieExtractor
+        jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
+
+        secretOrKey: process.env.JWT_SECRET,
+      },
+      async (jwt_payload, done) => {
+        //jwt_payload contiene la info del token
+        try {
+          //si existe la info del token se envia si no error
+          console.log("JWT", jwt_payload);
+          return done(null, jwt_payload);
+        } catch (error) {
+          return done(error);
+        }
+      }
+    )
+  );
   passport.use(
     "register",
     new LocalStrategy(
@@ -85,7 +118,7 @@ const initializePassport = () => {
     new GitHubStrategy(
       {
         clientID: process.env.CLIENT_ID,
-        clientSecret: process.env.CLIENT_SECRET,
+        clientSecret: process.env.SECRET_CLIENT,
         callbackURL: process.env.CALLBACK_URL,
       },
       async (accesToken, refreshToken, profile, done) => {

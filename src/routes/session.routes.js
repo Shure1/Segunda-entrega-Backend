@@ -100,4 +100,14 @@ sessionRouter.get("/logout", async (req, res) => {
   res.status(200).send({ resultado: "usuario deslogeado" });
 });
 
+/* verificamos que el token enviado sea valido */
+sessionRouter.get(
+  "/current",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    console.log(req);
+    res.send(req.user);
+  }
+);
+
 export default sessionRouter;
