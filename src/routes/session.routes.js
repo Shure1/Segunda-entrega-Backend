@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { userModel } from "../models/users.models.js";
 import passport from "passport";
+import { passportError, authorization } from "../utils/messageError.js";
 
 const sessionRouter = Router();
 
@@ -14,6 +14,7 @@ sessionRouter.post(
         return res.status(401).send({ mensaje: "usuario invalido" });
       }
 
+      /* generamos la sesion */
       req.session.user = {
         first_name: req.user.first_name,
         last_name: req.user.last_name,
@@ -67,7 +68,7 @@ sessionRouter.post(
         return res.status(400).send({ mensaje: "usuario ya existente" });
       }
 
-      res.status(200).send({ mensaje: "usuario creado" });
+      res.status(200).send({ mensaje: "usuario registrado" });
     } catch (error) {
       res.status(500).send({ mensaje: `error al registrar usuario ${error}` });
     }
@@ -100,12 +101,22 @@ sessionRouter.get("/logout", async (req, res) => {
   res.status(200).send({ resultado: "usuario deslogeado" });
 });
 
-/* verificamos que el token enviado sea valido */
+//Verifica que el token enviado sea valido (misma contraseña de encriptacion)
 sessionRouter.get(
-  "/current",
+  "/testJWT",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     console.log(req);
+    res.send(req.user);
+  }
+);
+
+/* verificamos los permisos en el postman en esta ruta como parte de experimento */
+sessionRouter.get(
+  "/current",
+  passportError("jwt"),
+  authorization("user"),
+  (req, res) => {
     res.send(req.user);
   }
 );

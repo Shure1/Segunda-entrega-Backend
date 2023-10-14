@@ -7,5 +7,6 @@ export const createHash = (pass) =>
   bcrypt.hashSync(pass, bcrypt.genSaltSync(parseInt(process.env.SALT)));
 
 /* validamos si la pass que puso el user en el cliente es igual al hash que esta en la BDD */
-export const validatePassword = (passUser, passBDD) =>
-  bcrypt.compareSync(passUser, passBDD);
+export const validatePassword = (passUser, passBDD) => {
+  return bcrypt.compareSync(passUser, passBDD);
+};

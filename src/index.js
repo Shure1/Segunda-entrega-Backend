@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
 import session from "express-session";
 import passport from "passport";
+import cookieParser from "cookie-parser";
 import initializePassport from "./config/passport.js";
 
 //handlebars
@@ -28,6 +29,7 @@ const PORT = 4000;
 //?MIDDLEWARES
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); //para que podamos trabajar con querys largas
+app.use(cookieParser(process.env.SIGNED_COOKIE)); // La cookie esta firmada
 
 //?MIDLEWARES DE HANDLEBARS
 app.engine("handlebars", engine()); //Defino que motor de plantillas voy a utilizar y su config

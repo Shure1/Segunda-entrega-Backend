@@ -17,7 +17,7 @@ const ExtractJWT = jwt.ExtractJwt;
 const initializePassport = () => {
   /* funcion que capta las cookies desde el cliente */
   const cookieExtractor = (req) => {
-    console.log(req.cookies);
+    console.log(req.cookies.jwtCookie);
     const token = req.cookies.jwtCookie ? req.cookies.jwtCookie : {};
     console.log("cookieExtractor", token);
 
@@ -26,7 +26,7 @@ const initializePassport = () => {
 
   passport.use(
     "jwt",
-    new Strategy(
+    new JWTStrategy(
       {
         //avisamos de que el token proviene desde cookieExtractor
         jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
@@ -76,7 +76,7 @@ const initializePassport = () => {
             email: email,
             password: passwordHash,
           });
-          return donde(null, userCreated);
+          return done(null, userCreated);
         } catch (error) {
           /* es done es un return implicito que utiliza passport */
           return done(error);
@@ -94,18 +94,26 @@ const initializePassport = () => {
       async (username, password, done) => {
         try {
           const user = await userModel.findOne({ email: username });
+          console.log(user);
           /* caso en que el user no exista al logearse */
           if (!user) {
+            console.log("no se encontro el user");
+
             return done(null, false);
           }
+          console.log(validatePassword(password, user.password));
+          console.log(typeof user.password);
+          console.log(typeof password);
 
           /* caso en que el user si existe */
           if (validatePassword(password, user.password)) {
+            console.log("las claves son validas");
             //a la izq ponemos lo que me envia el usuario y a la der lo que tengo en la BDD
             return done(null, user);
           }
+          console.log("datos invalidos");
           /* caso en que los datos son invalidos */
-          return donde(null, false);
+          return done(null, false);
         } catch (error) {
           return done(error);
         }
